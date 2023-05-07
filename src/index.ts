@@ -14,13 +14,14 @@ interface ITestResult {
 
 (async () => {
   const wasmKmeansFunction = (await kmeansWasm).kmeans;
+  const wasmKmeansNoIdxsFunction = (await kmeansWasm).kmeans_no_idxs;
   const wasmRgbKmeansFunction = (await kmeansWasm).kmeans_rgb;
 
   const testsData: {
     k: number;
     dimensions: number;
     data: number[][];
-  }[] = kTests.map(k => 
+  }[] = kTests.map(k =>
     dimensionsTests.map(dimensions => {
       return {
         k,
@@ -39,17 +40,25 @@ interface ITestResult {
   const kmeansWasmResults: ITestResult[] = testsData.map(({ k, dimensions, data }) => ({
     k,
     dimensions,
-    avarageTime: test(wasmKmeansFunction, 10, k, 0, maxIterations, data),
+    avarageTime: test(wasmKmeansFunction, 10, data, k, maxIterations),
+  }));
+
+  const kmeansWasmNoIdxsResults: ITestResult[] = testsData.map(({ k, dimensions, data }) => ({
+    k,
+    dimensions,
+    avarageTime: test(wasmKmeansNoIdxsFunction, 10, data, k, maxIterations),
   }));
 
   // Update the results table
   const resultsTable = document.getElementById("results-table");
   if (resultsTable) {
     resultsTable.innerHTML += `
-      <h2>skmeans</h2>
+      <h2>skmeans (data size - ${dataSize}, max iterations: ${maxIterations})</h2>
       ${generateTable(skmeansResults)}
-      <h2>kmeans-wasm</h2>
+      <h2>kmeans (data size - ${dataSize}, max iterations: ${maxIterations})</h2>
       ${generateTable(kmeansWasmResults)}
+      <h2>kmeans_no_idxs (data size - ${dataSize}, max iterations: ${maxIterations})</h2>
+      ${generateTable(kmeansWasmNoIdxsResults)}
     `;
   }
 
@@ -64,7 +73,7 @@ interface ITestResult {
     const ctx = canvas.getContext("2d");
     ctx!.drawImage(image, 0, 0);
 
-    const imageData = ctx!.getImageData(0, 0, canvas.width, canvas.height);
+    const imageData = ctx!.getImageData(0, 0, 300, 300);
     const rgbaData = imageData.data;
 
     const rgbPointsData: number[][] = [];
@@ -75,7 +84,7 @@ interface ITestResult {
     const skmeansRGBresult = kTests.map(k => ({
       k,
       dimensions: 3,
-      avarageTime: test(skmeans, 10, rgbPointsData, k, undefined, maxIterations),
+      avarageTime: test(skmeans, 2, rgbPointsData, k, undefined, maxIterations),
     }));
 
     const rgbData: number[] = [];
@@ -87,7 +96,7 @@ interface ITestResult {
     const kmeansWasmRGBresult = kTests.map(k => ({
       k,
       dimensions: 3,
-      avarageTime: test(wasmRgbKmeansFunction, 10, k, 0, maxIterations, rgbUint8Array),
+      avarageTime: test(wasmRgbKmeansFunction, 2, rgbUint8Array, k, maxIterations),
     }));
 
     // Update the results table
@@ -95,7 +104,7 @@ interface ITestResult {
       resultsTable.innerHTML += `
       <h2>skmeans RGB</h2>
       ${generateTable(skmeansRGBresult)}
-      <h2>kmeans-wasm RGB</h2>
+      <h2>kmeans RGB</h2>
       ${generateTable(kmeansWasmRGBresult)}
       `;
     }
@@ -108,7 +117,7 @@ function test<Fn extends (...args: Args) => Res, Args extends unknown[], Res>(fn
     const start = performance.now();
     const res = fn(...args);
     sum += performance.now() - start;
-    console.log((res as any).toString());
+    console.log((res as any)[0]?.toString());
   }
 
   return sum / times;
@@ -118,7 +127,7 @@ function test<Fn extends (...args: Args) => Res, Args extends unknown[], Res>(fn
 function generateData(size: number, dimensions: number): number[][] {
   return new Array(size)
     .fill(0)
-    .map(() => 
+    .map(() =>
       new Array(dimensions)
         .fill(0)
         .map(() => Math.random())
