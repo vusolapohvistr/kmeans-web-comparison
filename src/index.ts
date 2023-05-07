@@ -3,8 +3,8 @@ import kmeansWasm from "kmeans-wasm";
 
 const kTests = [2, 10, 50];
 const dimensionsTests = [3, 10, 50];
-const dataSize = 1000;
-const maxIterations = 100;
+const dataSize = 10000;
+const maxIterations = 1000;
 
 interface ITestResult {
   k: number;
@@ -14,7 +14,6 @@ interface ITestResult {
 
 (async () => {
   const wasmKmeansFunction = (await kmeansWasm).kmeans;
-  const wasmKmeansNoIdxsFunction = (await kmeansWasm).kmeans_no_idxs;
   const wasmRgbKmeansFunction = (await kmeansWasm).kmeans_rgb;
 
   const testsData: {
@@ -43,12 +42,6 @@ interface ITestResult {
     avarageTime: test(wasmKmeansFunction, 10, data, k, maxIterations),
   }));
 
-  const kmeansWasmNoIdxsResults: ITestResult[] = testsData.map(({ k, dimensions, data }) => ({
-    k,
-    dimensions,
-    avarageTime: test(wasmKmeansNoIdxsFunction, 10, data, k, maxIterations),
-  }));
-
   // Update the results table
   const resultsTable = document.getElementById("results-table");
   if (resultsTable) {
@@ -57,8 +50,6 @@ interface ITestResult {
       ${generateTable(skmeansResults)}
       <h2>kmeans (data size - ${dataSize}, max iterations: ${maxIterations})</h2>
       ${generateTable(kmeansWasmResults)}
-      <h2>kmeans_no_idxs (data size - ${dataSize}, max iterations: ${maxIterations})</h2>
-      ${generateTable(kmeansWasmNoIdxsResults)}
     `;
   }
 
