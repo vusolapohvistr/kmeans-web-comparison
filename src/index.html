@@ -6,13 +6,12 @@
     <title>K-means Comparison</title>
 </head>
 <body>
-    <h1>K-means Comparison</h1>
-    <table id="results-table">
-        <tr>
-            <th>Library</th>
-            <th>Execution Time (ms)</th>
-        </tr>
-    </table>
+    <div id="results">
+        <p id="skmeans-result"></p>
+        <canvas id="skmeans" width="500" height="500"></canvas>
+        <p id="kmeans-wasm-result"></p>
+        <canvas id="kmeansWasm" width="500" height="500"></canvas>
+    </div>
 </body>
 </html>
 

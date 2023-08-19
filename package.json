@@ -16,7 +16,7 @@
   "author": "Serhii Pylypchuk",
   "license": "MIT",
   "dependencies": {
-    "kmeans-wasm": "^2.0.10",
+    "kmeans-wasm": "^3.0.0",
     "skmeans": "^0.11.3"
   },
   "devDependencies": {
